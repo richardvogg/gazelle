@@ -40,9 +40,21 @@ We provide the following pretrained models for download.
 | ```gazelle_dinov2_vitb14_inout``` | DINOv2 ViT-B | ```dinov2_vitb14``` | Gazefollow -> VideoAttentionTarget | [Download](https://github.com/fkryan/gazelle/releases/download/v1.0.0/gazelle_dinov2_vitb14_inout.pt) |
 | ```gazelle_large_vitl14_inout``` | DINOv2-ViT-L | ```dinov2_vitl14```  | GazeFollow -> VideoAttentionTarget | [Download](https://github.com/fkryan/gazelle/releases/download/v1.0.0/gazelle_dinov2_vitl14_inout.pt) |
 
+
 Note that our Gaze-LLE checkpoints contain only the gaze decoder weights - the DINOv2 backbone weights are downloaded from ```facebookresearch/dinov2``` on PyTorch Hub when the Gaze-LLE model is created in our code.
 
 The GazeFollow-trained models output a spatial heatmap of gaze locations over the scene with values in range ```[0,1]```, where 1 represents the highest probability of the location being a gaze target. The models that are additionally finetuned on VideoAttentionTarget also predict a in/out of frame gaze score in range ```[0,1]``` where 1 represents the person's gaze target being in the frame.
+
+### PyTorch Hub
+
+The models are also available on PyTorch Hub for easy use without installing from source.
+```
+model, transform = torch.hub.load('fkryan/gazelle', 'gazelle_dinov2_vitb14')
+model, transform = torch.hub.load('fkryan/gazelle', 'gazelle_dinov2_vitl14')
+model, transform = torch.hub.load('fkryan/gazelle', 'gazelle_dinov2_vitb14_inout')
+model, transform = torch.hub.load('fkryan/gazelle', 'gazelle_dinov2_vitl14_inout')
+```
+
 
 ## Usage
 Gaze-LLE is set up for multi-person inference (e.g. for a single image, GazeLLE encodes the scene only once and then uses the features to predict the gaze of multiple people in the image). The input is a batch of image tensors and a list of bounding boxes for each image representing the heads of the people to predict gaze for in each image. The bounding boxes are tuples of form ```(xmin, ymin, xmax, ymax)``` and are in ```[0,1]``` normalized image coordinates. Below we show how to perform inference for a single person in a single image.

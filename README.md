@@ -6,7 +6,7 @@
     <img src="./assets/CBS_2.gif" height="100"/>
 </div>
 
-[Gaze-LLE: Gaze Target Estimation via Large-Scale Learned Encoders](https://fkryan.github.io/gazelle) \
+[Gaze-LLE: Gaze Target Estimation via Large-Scale Learned Encoders](https://arxiv.org/abs/2412.09586) \
 [Fiona Ryan](https://fkryan.github.io/), Ajay Bati, [Sangmin Lee](https://sites.google.com/view/sangmin-lee), [Daniel Bolya](https://dbolya.github.io/), [Judy Hoffman](https://faculty.cc.gatech.edu/~judy/)\*, [James M. Rehg](https://rehg.org/)\*
 
 
@@ -133,7 +133,14 @@ python scripts/eval_vat.py
 
 ## Citation
 
-TBD
+```
+@article{ryan2024gazelle,
+  author       = {Ryan, Fiona and Bati, Ajay and Lee, Sangmin and Bolya, Daniel and Hoffman, Judy and Rehg, James M},
+  title        = {Gaze-LLE: Gaze Target Estimation via Large-Scale Learned Encoders},
+  journal      = {arXiv preprint arXiv:2412.09586},
+  year         = {2024},
+}
+```
 
 ## References
 

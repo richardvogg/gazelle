@@ -120,7 +120,7 @@ python scripts/eval_gazefollow.py
 ### VideoAttentionTarget
 Download the VideoAttentionTarget dataset [here](https://github.com/ejcgt/attention-target-detection?tab=readme-ov-file#dataset-1). We provide a preprocessing script ```data_prep/preprocess_vat.py```, which preprocesses and compiles the annotations into a JSON file for each split within the dataset folder. Run the preprocessing script as
 ```
-python data_prep/preprocess_gazefollow.py --data_path /path/to/videoattentiontarget
+python data_prep/preprocess_vat.py --data_path /path/to/videoattentiontarget
 ```
 Download the pretrained model checkpoints above and use ```--model_name``` and ```ckpt_path``` to specify the model type and checkpoint for evaluation.
 ```

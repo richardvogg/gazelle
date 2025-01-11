@@ -32,8 +32,6 @@ def main(DATA_PATH):
         if num_people > 1:
             multiperson_ex += 1
         heads = []
-        crop_constraint_xs = []
-        crop_constraint_ys = []
 
         for i in range(num_people):
             xmin, ymin, xmax, ymax = row['bbox_x_min'][i], row['bbox_y_min'][i], row['bbox_x_max'][i], row['bbox_y_max'][i]
@@ -57,25 +55,15 @@ def main(DATA_PATH):
             ymin = max(ymin, 0)
             xmax = min(xmax, width)
             ymax = min(ymax, height)
-            
-            # precalculate feasible crop region (containing bbox and gaze target)
-            crop_xmin = min(xmin, gazex)
-            crop_ymin = min(ymin, gazey)
-            crop_xmax = max(xmax, gazex)
-            crop_ymax = max(ymax, gazey)
-            crop_constraint_xs.extend([crop_xmin, crop_xmax])
-            crop_constraint_ys.extend([crop_ymin, crop_ymax])
 
             heads.append({
                 'bbox': [xmin, ymin, xmax, ymax],
-                'bbox_norm': [xmin / float(width), ymin / float(height), xmax / float(width), xmax / float(height)],
+                'bbox_norm': [xmin / float(width), ymin / float(height), xmax / float(width), ymax / float(height)],
                 'inout': row['inout'][i],
                 'gazex': [gazex], # convert to list for consistency with multi-annotation format
                 'gazey': [gazey],
                 'gazex_norm': [gazex_norm],
                 'gazey_norm': [gazey_norm],
-                'crop_region': [crop_xmin, crop_ymin, crop_xmax, crop_ymax],
-                'crop_region_norm': [crop_xmin / float(width), crop_ymin / float(height), crop_xmin / float(width), crop_ymax / float(height)],
                 'head_id': i
             })
         TRAIN_FRAMES.append({
@@ -84,7 +72,6 @@ def main(DATA_PATH):
             'num_heads': num_people,
             'width': width,
             'height': height,
-            'crop_region': [min(crop_constraint_xs), min(crop_constraint_ys), max(crop_constraint_xs), max(crop_constraint_ys)],
         })
 
     print("Train set: {} frames, {} multi-person".format(len(TRAIN_FRAMES), multiperson_ex))
@@ -116,8 +103,6 @@ def main(DATA_PATH):
         item = TEST_FRAME_DICT[path]
         num_people = len(item)
         heads = []
-        crop_constraint_xs = []
-        crop_constraint_ys = []
 
         for i in range(num_people):
             row = item[i]
@@ -144,14 +129,6 @@ def main(DATA_PATH):
             gazex = [x * float(width) for x in row['gaze_x']]
             gazey = [y * float(height) for y in row['gaze_y']]
 
-            # precalculate feasible crop region (containing bbox and gaze target)
-            crop_xmin = min(xmin, *gazex)
-            crop_ymin = min(ymin, *gazey)
-            crop_xmax = max(xmax, *gazex)
-            crop_ymax = max(ymax, *gazey)
-            crop_constraint_xs.extend([crop_xmin, crop_xmax])
-            crop_constraint_ys.extend([crop_ymin, crop_ymax])
-
             heads.append({
                 'bbox': [xmin, ymin, xmax, ymax],
                 'bbox_norm': [xmin / float(width), ymin / float(height), xmax / float(width), ymax / float(height)],
@@ -161,19 +138,15 @@ def main(DATA_PATH):
                 'gazey_norm': gazey_norm,
                 'inout': 1, # all test frames are in frame
                 'num_annot': len(gazex),
-                'crop_region': [crop_xmin, crop_ymin, crop_xmax, crop_ymax],
-                'crop_region_norm': [crop_xmin / float(width), crop_ymin / float(height), crop_xmax / float(width), crop_ymax / float(height)],
                 'head_id': i
             })
         
-        # visualize_heads(img_path, heads)
         TEST_FRAMES.append({
             'path': path,
             'heads': heads,
             'num_heads': num_people,
             'width': width,
             'height': height,
-            'crop_region': [min(crop_constraint_xs), min(crop_constraint_ys), max(crop_constraint_xs), max(crop_constraint_ys)],
         })
         if num_people > 1:
             multiperson_ex += 1

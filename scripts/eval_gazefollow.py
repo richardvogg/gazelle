@@ -13,8 +13,8 @@ from gazelle.backbone import DinoV2Backbone
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="./data/gazefollow")
-parser.add_argument("--model_name", type=str, default="gazelle_dinov2_vitl14_inout")
-parser.add_argument("--ckpt_path", type=str, default="./checkpoints/gazelle_dinov2_vitl14_inout.pt")
+parser.add_argument("--model_name", type=str, default="gazelle_dinov2_vitl14")
+parser.add_argument("--ckpt_path", type=str, default="./checkpoints/gazelle_dinov2_vitl14.pt")
 parser.add_argument("--batch_size", type=int, default=128)
 args = parser.parse_args()
 

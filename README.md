@@ -1,9 +1,6 @@
 # Gaze-LLE
 <div style="text-align:center;">
-    <img src="./assets/the_office.png" height="100"/>
-    <img src="./assets/MLB_1.gif" height="100"/>
-    <img src="./assets/succession.png" height="100"/>
-    <img src="./assets/CBS_2.gif" height="100"/>
+    <img src="./assets/office_gif.gif" height="300"/>
 </div>
 
 [Gaze-LLE: Gaze Target Estimation via Large-Scale Learned Encoders](https://arxiv.org/abs/2412.09586) \

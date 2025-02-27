@@ -1,4 +1,4 @@
-# Gaze-LLE
+# Gaze-LLE (CVPR 2025)
 <div style="text-align:center;">
     <img src="./assets/office_gif.gif" height="300"/>
 </div>

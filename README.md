@@ -132,7 +132,7 @@ python scripts/eval_vat.py
 
 ```
 @inproceedings{ryan2025gazelle, 
-    author = {Ryan, Fiona and Bati, Ajay and Lee, Sangmin and Bolya, Daniel and Hoffman*, Judy and Rehg*, James M.},
+    author = {Ryan, Fiona and Bati, Ajay and Lee, Sangmin and Bolya, Daniel and Hoffman, Judy and Rehg, James M.},
     title = {Gaze-LLE: Gaze Target Estimation via Large-Scale Learned Encoders},
     year = {2025},
     booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition}

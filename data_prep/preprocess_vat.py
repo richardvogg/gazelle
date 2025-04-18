@@ -90,6 +90,13 @@ def main(PATH):
                         elif gazey >=0 and gazex < 0:
                             gazex = 0
                         inout = int(gazex >= 0 and gazey >= 0)
+
+                        # move bboxes within frame if necessary
+                        xmin = max(xmin, 0)
+                        ymin = max(ymin, 0)
+                        xmax = min(xmax, width)
+                        ymax = min(ymax, height)
+
                         frame_dict["heads"].append({
                             "bbox": [xmin, ymin, xmax, ymax],
                             "bbox_norm": [xmin / float(width), ymin / float(height), xmax / float(width), ymax / float(height)],

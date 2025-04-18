@@ -4,10 +4,11 @@ from PIL import Image
 import json
 import os
 import numpy as np
-from sklearn.metrics import roc_auc_score, average_precision_score
+from sklearn.metrics import average_precision_score
 from tqdm import tqdm
 
 from gazelle.model import get_gazelle_model
+from gazelle.utils import vat_auc, vat_l2
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="./data/videoattentiontarget")
@@ -44,34 +45,6 @@ class VideoAttentionTarget(torch.utils.data.Dataset):
 def collate(batch):
     images, bboxes, gazex, gazey, inout = zip(*batch)
     return torch.stack(images), list(bboxes), list(gazex), list(gazey), list(inout)
-
-# VideoAttentionTarget calculates AUC on 64x64 heatmap, defining a rectangular tolerance region of 6*(sigma=3) + 1 (uses 2D Gaussian code but binary thresholds > 0 resulting in rectangle)
-# References:
-    # https://github.com/ejcgt/attention-target-detection/blob/acd264a3c9e6002b71244dea8c1873e5c5818500/eval_on_videoatttarget.py#L106
-    # https://github.com/ejcgt/attention-target-detection/blob/acd264a3c9e6002b71244dea8c1873e5c5818500/utils/imutils.py#L31
-def vat_auc(heatmap, gt_gazex, gt_gazey):
-    res = 64
-    sigma = 3
-    assert heatmap.shape[0] == res and heatmap.shape[1] == res
-    target_map = np.zeros((res, res))
-    gazex = gt_gazex * res
-    gazey = gt_gazey * res
-    ul = [max(0, int(gazex - 3 * sigma)), max(0, int(gazey - 3 * sigma))]
-    br = [min(int(gazex + 3 * sigma + 1), res-1), min(int(gazey + 3 * sigma + 1), res-1)]
-    target_map[ul[1]:br[1], ul[0]:br[0]] = 1
-    auc = roc_auc_score(target_map.flatten(), heatmap.cpu().flatten())
-    return auc
-
-# Reference: https://github.com/ejcgt/attention-target-detection/blob/acd264a3c9e6002b71244dea8c1873e5c5818500/eval_on_videoatttarget.py#L118
-def vat_l2(heatmap, gt_gazex, gt_gazey):
-    argmax = heatmap.flatten().argmax().item()
-    pred_y, pred_x = np.unravel_index(argmax, (64, 64))
-    pred_x = pred_x / 64.
-    pred_y = pred_y / 64.
-
-    l2 = np.sqrt((pred_x - gt_gazex)**2 + (pred_y - gt_gazey)**2)
-
-    return l2
 
 
 @torch.no_grad()

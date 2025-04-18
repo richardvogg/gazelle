@@ -4,12 +4,10 @@ from PIL import Image
 import json
 import os
 import numpy as np
-from sklearn.metrics import roc_auc_score
 from tqdm import tqdm
 
 from gazelle.model import get_gazelle_model
-from gazelle.model import GazeLLE
-from gazelle.backbone import DinoV2Backbone
+from gazelle.utils import gazefollow_auc, gazefollow_l2
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", type=str, default="./data/gazefollow")
@@ -41,40 +39,6 @@ class GazeFollow(torch.utils.data.Dataset):
 def collate(batch):
     images, bboxes, gazex, gazey, height, width = zip(*batch)
     return torch.stack(images), list(bboxes), list(gazex), list(gazey), list(height), list(width)
-
-# GazeFollow calculates AUC using original image size with GT (x,y) coordinates set to 1 and everything else as 0
-# References:
-    # https://github.com/ejcgt/attention-target-detection/blob/acd264a3c9e6002b71244dea8c1873e5c5818500/eval_on_gazefollow.py#L78
-    # https://github.com/ejcgt/attention-target-detection/blob/acd264a3c9e6002b71244dea8c1873e5c5818500/utils/imutils.py#L67
-    # https://github.com/ejcgt/attention-target-detection/blob/acd264a3c9e6002b71244dea8c1873e5c5818500/utils/evaluation.py#L7
-def gazefollow_auc(heatmap, gt_gazex, gt_gazey, height, width):
-    target_map = np.zeros((height, width))
-    for point in zip(gt_gazex, gt_gazey):
-        if point[0] >= 0:
-            x, y = map(int, [point[0]*float(width), point[1]*float(height)])
-            x = min(x, width - 1)
-            y = min(y, height - 1)
-            target_map[y, x] = 1
-    resized_heatmap = torch.nn.functional.interpolate(heatmap.unsqueeze(dim=0).unsqueeze(dim=0), (height, width), mode='bilinear').squeeze()
-    auc = roc_auc_score(target_map.flatten(), resized_heatmap.cpu().flatten())
-    
-    return auc
-
-# Reference: https://github.com/ejcgt/attention-target-detection/blob/acd264a3c9e6002b71244dea8c1873e5c5818500/eval_on_gazefollow.py#L81
-def gazefollow_l2(heatmap, gt_gazex, gt_gazey):
-    argmax = heatmap.flatten().argmax().item()
-    pred_y, pred_x = np.unravel_index(argmax, (64, 64))
-    pred_x = pred_x / 64.
-    pred_y = pred_y / 64.
-
-    gazex = np.array(gt_gazex)
-    gazey = np.array(gt_gazey)
-
-    avg_l2 = np.sqrt((pred_x - gazex.mean())**2 + (pred_y - gazey.mean())**2)
-    all_l2s = np.sqrt((pred_x - gazex)**2 + (pred_y - gazey)**2)
-    min_l2 = all_l2s.min().item()
-
-    return avg_l2, min_l2
 
 
 @torch.no_grad()

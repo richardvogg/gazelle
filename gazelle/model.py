@@ -20,7 +20,9 @@ class GazeLLE(nn.Module):
         self.inout = inout
 
         self.linear = nn.Conv2d(backbone.get_dimension(), self.dim, 1)
+        self.head_token = nn.Embedding(1, self.dim)
         self.register_buffer("pos_embed", positionalencoding2d(self.dim, self.featmap_h, self.featmap_w).squeeze(dim=0).squeeze(dim=0))
+        if self.inout: self.inout_token = nn.Embedding(1, self.dim)
         self.transformer = nn.Sequential(*[
             Block(
                 dim=self.dim, 
@@ -34,8 +36,7 @@ class GazeLLE(nn.Module):
             nn.Conv2d(dim, 1, kernel_size=1, bias=False),
             nn.Sigmoid()
         )
-        self.head_token = nn.Embedding(1, self.dim)
-        if self.inout:
+        if self.inout: 
             self.inout_head = nn.Sequential(
                 nn.Linear(self.dim, 128),
                 nn.ReLU(),
@@ -43,7 +44,6 @@ class GazeLLE(nn.Module):
                 nn.Linear(128, 1),
                 nn.Sigmoid()
             )
-            self.inout_token = nn.Embedding(1, self.dim)
 
     def forward(self, input):
         # input["images"]: [B, 3, H, W] tensor of images

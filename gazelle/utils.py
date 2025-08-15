@@ -164,7 +164,7 @@ def gazefollow_l2(heatmap, gt_gazex, gt_gazey):
     # https://github.com/ejcgt/attention-target-detection/blob/acd264a3c9e6002b71244dea8c1873e5c5818500/eval_on_videoatttarget.py#L106
     # https://github.com/ejcgt/attention-target-detection/blob/acd264a3c9e6002b71244dea8c1873e5c5818500/utils/imutils.py#L31
 def vat_auc(heatmap, gt_gazex, gt_gazey):
-    res = 64
+    res = 128
     sigma = 3
     assert heatmap.shape[0] == res and heatmap.shape[1] == res
     target_map = np.zeros((res, res))
@@ -179,9 +179,9 @@ def vat_auc(heatmap, gt_gazex, gt_gazey):
 # Reference: https://github.com/ejcgt/attention-target-detection/blob/acd264a3c9e6002b71244dea8c1873e5c5818500/eval_on_videoatttarget.py#L118
 def vat_l2(heatmap, gt_gazex, gt_gazey):
     argmax = heatmap.flatten().argmax().item()
-    pred_y, pred_x = np.unravel_index(argmax, (64, 64))
-    pred_x = pred_x / 64.
-    pred_y = pred_y / 64.
+    pred_y, pred_x = np.unravel_index(argmax, (128, 128))
+    pred_x = pred_x / 128.
+    pred_y = pred_y / 128.
 
     l2 = np.sqrt((pred_x - gt_gazex)**2 + (pred_y - gt_gazey)**2)
 

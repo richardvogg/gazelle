@@ -80,7 +80,7 @@ class GazeDataset(torch.utils.data.dataset.Dataset):
         img = self.transform(img)
         
         if self.split == "train":
-            heatmap = utils.get_heatmap(gazex_norm[0], gazey_norm[0], 64, 64) # note for training set, there is only one annotation
+            heatmap = utils.get_heatmap(gazex_norm[0], gazey_norm[0], 128, 128) # note for training set, there is only one annotation
             return img, bbox_norm, gazex_norm, gazey_norm, torch.tensor(inout), height, width, heatmap
         else:
             return img, bbox_norm, gazex_norm, gazey_norm, torch.tensor(inout), height, width

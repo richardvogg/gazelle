@@ -1,4 +1,4 @@
-name: gazelle
+name: gaze
 channels:
   - nvidia
   - pytorch

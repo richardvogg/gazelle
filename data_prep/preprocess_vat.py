@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_path", type=str, default="./data/videoattentiontarget")
+parser.add_argument("--data_path", type=str, default="./data/lemurattentiontarget_new_clean")
 args = parser.parse_args()
 
 # preprocessing adapted from https://github.com/ejcgt/attention-target-detection/blob/master/dataset.py
@@ -49,11 +49,9 @@ def main(PATH):
         sequences = []
         max_num_ppl = 0
         seq_idx = 0
-        for seq_path in glob.glob(
-            os.path.join(PATH, "annotations", split, "*", "*")
-        ):
-            seq_img_path = os.path.join("images", *seq_path.split("/")[-2:]
-            )
+        for seq_path in glob.glob(os.path.join(PATH, "annotations", split, "*")):
+            seq_img_path = os.path.join("images", *seq_path.split("/")[-1:])
+            
             sample_image = os.path.join(PATH, seq_img_path, os.listdir(os.path.join(PATH, seq_img_path))[0])
             width, height = Image.open(sample_image).size
             seq_dict = {"path": seq_img_path, "width": width, "height": height}
@@ -73,7 +71,7 @@ def main(PATH):
             ]
             # moving-avg smoothing to match original benchmark's evaluation
             window_size = 11
-            person_dfs = [smooth_df(window_size, df) for df in person_dfs]
+            #person_dfs = [smooth_df(window_size, df) for df in person_dfs]
             merged_df = merge_dfs(person_dfs) # merge annotations per person for same frames
             for frame_idx, row in merged_df.iterrows():
                 frame_dict = {
@@ -116,6 +114,7 @@ def main(PATH):
         print("{} max people per image {}".format(split, max_num_ppl))
         print("{} num unique video sequences {}".format(split, len(sequences)))
 
+        os.makedirs(PATH, exist_ok=True)
         out_file = open(os.path.join(PATH, "{}_preprocessed.json".format(split)), "w")
         json.dump(sequences, out_file)
 

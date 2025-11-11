@@ -24,8 +24,8 @@ import shutil
 #target
 #|-- all_files_gaze.txt
 
-source_root = 'data/lemurattentiontarget_new/'
-target_root = 'data/lemurattentiontarget_new_clean/'
+source_root = 'data/lemurattentiontarget_joana1/'
+target_root = 'data/lemurattentiontarget_joana1_clean/'
 
 src_img_root = os.path.join(source_root, 'images')
 dst_img_root = os.path.join(target_root, 'images')
@@ -37,7 +37,7 @@ txt_file_path = os.path.join(target_root, 'all_files_gaze.txt')
 with open(txt_file_path, 'r') as f:
     relative_paths = [line.strip() for line in f if line.strip()]
 
-'''
+
 # Process each file
 for rel_path in relative_paths:
     # Remove leading "images/" if it exists
@@ -55,7 +55,7 @@ for rel_path in relative_paths:
     else:
         print(f"Warning: Source file not found: {src}")
 
-'''
+
 
 
 

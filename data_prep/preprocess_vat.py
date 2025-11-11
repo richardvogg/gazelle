@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_path", type=str, default="./data/lemurattentiontarget_new_clean")
+parser.add_argument("--data_path", type=str, default="./data/o_lemurattentiontarget_mini")
 args = parser.parse_args()
 
 # preprocessing adapted from https://github.com/ejcgt/attention-target-detection/blob/master/dataset.py
@@ -51,12 +51,32 @@ def main(PATH):
         seq_idx = 0
         for seq_path in glob.glob(os.path.join(PATH, "annotations", split, "*")):
             seq_img_path = os.path.join("images", *seq_path.split("/")[-1:])
-            
             sample_image = os.path.join(PATH, seq_img_path, os.listdir(os.path.join(PATH, seq_img_path))[0])
+
+            #seq_img_path = os.path.join(PATH, "images", os.path.basename(seq_path))
+
+            # Recursively search for image files (jpg, png, etc.)
+            #image_files = []
+            #for ext in ("*.jpg", "*.jpeg", "*.png"):
+            #    image_files.extend(glob.glob(os.path.join(seq_img_path, "**", ext), recursive=True))
+
+            #if not image_files:
+            #    print(f"No image files found in {seq_img_path}")
+            #     continue
+
+            # Pick first image and open it safely
+            #sample_image = image_files[0]
+
             width, height = Image.open(sample_image).size
             seq_dict = {"path": seq_img_path, "width": width, "height": height}
             frames = []
             person_files = glob.glob(os.path.join(seq_path, "*"))
+            #person_files = []
+            #for ext in ("*.txt",):
+            #    person_files.extend(glob.glob(os.path.join(seq_path, "**", ext), recursive=True))
+
+            # Keep only files (ignore directories just in case)
+            #person_files = [f for f in person_files if os.path.isfile(f)]
             num_ppl = len(person_files)
             if num_ppl > max_num_ppl:
                 max_num_ppl = num_ppl

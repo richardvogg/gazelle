@@ -2,9 +2,9 @@ import os
 import pandas as pd
 import numpy as np
 
-image_path_root = "data/lemurattentiontarget_new/images/"
+image_path_root = "data/lemurattentiontarget_test/images/"
 label_path = "data/raw_annotations/"
-output_path = "data/lemurattentiontarget_new/annotations/"
+output_path = "data/lemurattentiontarget_test/annotations/"
 
 # List all files in the image directory
 image_files = []
@@ -12,7 +12,7 @@ for folder in os.listdir(image_path_root):
     folder_path = os.path.join(image_path_root, folder)
     if os.path.isdir(folder_path):
         image_files += [f for f in os.listdir(folder_path) if f.endswith('.jpg')]
-test_files = ['A_e5_c7', 'A_e10_c7', 'A_e11_c6']
+test_files = [] #'A_e5_c7', 'A_e10_c7', 'A_e11_c6'
 
 # Extract unique base filenames (before '_frame')
 base_names = set()

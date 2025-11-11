@@ -12,6 +12,7 @@ import torchvision.transforms.functional as TF
 import cv2
 import torch
 from torch.utils.data import Dataset
+import time
 
 from gazelle.model import get_gazelle_model
 from gazelle.utils import vat_auc, vat_l2
@@ -19,18 +20,16 @@ from gazelle.utils import vat_auc, vat_l2
 #lemurs_smallnew_ViTB14/2025-07-29_15-02-09/epoch_19.pt
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--video_path", type=str, default="./data/B_e10_c7/B_e10_c7.mp4")
+parser.add_argument("--video_path", type=str, default="./data/A_e1_c6/A_e1_c6.mp4")
 parser.add_argument("--model_name", type=str, default="gazelle_dinov2_vitb14_inout")
-parser.add_argument("--ckpt_path", type=str, default="./experiments/lemurs_smallnew_ViTB14_largeinputsquare/2025-08-05_19-10-03/epoch_19.pt") #"./experiments/train_gazelle_vitb_lemurs/2025-06-17_18-09-57/epoch_7.pt"
-parser.add_argument("--output_path", type=str, default="./output_images/B_e10_c7_largeinputsquare/")
+parser.add_argument("--ckpt_path", type=str, default="./experiments/current_best/sample1_epoch_14.pt") #"./experiments/train_gazelle_vitb_lemurs/2025-06-17_18-09-57/epoch_7.pt"
+parser.add_argument("--output_path", type=str, default="./output_images/A_e1_c6/")
 parser.add_argument("--batch_size", type=int, default=1)
 args = parser.parse_args()
 
 
 
-import cv2
-import torch
-from torch.utils.data import Dataset
+
 
 class VideoFrameDatasetWithBBoxes(Dataset):
     def __init__(self, video_path, transform=None, image_width=1920, image_height=1080):
@@ -79,10 +78,15 @@ class VideoFrameDatasetWithBBoxes(Dataset):
         cap = cv2.VideoCapture(self.video_path)
         cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
         ret, frame = cap.read()
-        cap.release()
-
+        
         if not ret:
-            raise IndexError(f"Failed to read frame {idx}")
+            time.sleep(1)  # Wait for 1 second before retrying
+            cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
+            ret, frame = cap.read()
+            if not ret:
+                raise IndexError(f"Failed to read frame {idx}")
+            
+        cap.release()
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -101,9 +105,9 @@ def collate(batch):
 
 
 @torch.no_grad()
-def main(vis = False):
-    if vis:
-        os.makedirs(args.output_path, exist_ok=True)
+def main(vis = False, start_frame=0, end_frame='last', by = 5, gaze_thresh = 0.9):
+    #if vis:
+    os.makedirs(args.output_path, exist_ok=True)
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print("Running on {}".format(device))
 
@@ -112,7 +116,9 @@ def main(vis = False):
     model.to(device)
     model.eval()
     # Create a list of indices starting at idx=2000 and skipping every 5th idx
-    indices = list(range(1000, len(VideoFrameDatasetWithBBoxes(args.video_path, transform)), 5))
+    if end_frame == 'last':
+        end_frame = len(VideoFrameDatasetWithBBoxes(args.video_path, transform))
+    indices = list(range(start_frame, end_frame, by))
 
     dataset = VideoFrameDatasetWithBBoxes(args.video_path, transform)
     dataloader = torch.utils.data.DataLoader(
@@ -175,7 +181,7 @@ def main(vis = False):
                         alpha_mask = np.clip(alpha_mask, 0, 1) * hm_alpha   
                         alpha_mask = cv2.resize(alpha_mask, (output_width, output_height))  # Resize to match image dimensions
 
-                        ax.imshow(heatmap_norm, cmap='jet', alpha=alpha_mask)  # Overlay heatmap
+                        #ax.imshow(heatmap_norm, cmap='jet', alpha=alpha_mask)  # Overlay heatmap
 
                     obj_id = bboxes[i][j][0]  # Get the object ID
                     x1, y1, x2, y2 = bboxes[i][j][1:]
@@ -185,12 +191,14 @@ def main(vis = False):
                     # Plot the center of the rectangle
                     center_x = (x1 + x2) / 2 * output_width
                     center_y = (y1 + y2) / 2 * output_height
-                    if vis:
-                        ax.plot(center_x, center_y, 'yo', markersize=10)
+                    #if vis:
+                    #    ax.plot(center_x, center_y, 'yo', markersize=5)
 
-                    if preds['inout'][i][j].item() > 0.2:
+                    if preds['inout'][i][j].item() > 0.6:
                         # Find the maximum of heatmap_norm and plot a yellow dot
                         max_y, max_x = np.unravel_index(np.argmax(heatmap_norm), heatmap_norm.shape)
+                        if max_y < 0.5: # we are only interested if the target is in the lower half of the image
+                            continue
                         # Check if (max_x, max_y) is inside any other bbox (not the current one)
                         inside_other_bbox = False
                         target_id = None
@@ -201,15 +209,22 @@ def main(vis = False):
                             # Scale bbox to image size
                             ox1_img, oy1_img = ox1 * output_width, oy1 * output_height
                             ox2_img, oy2_img = ox2 * output_width, oy2 * output_height
+                            
                             if ox1_img <= max_x <= ox2_img and oy1_img <= max_y <= oy2_img:
                                 inside_other_bbox = True
                                 target_id = bboxes[i][k][0]  # Get the object ID of the other bbox
                                 with open(os.path.join(args.output_path, "interaction_log.txt"), "a") as f:
                                     f.write(f"{frame_number[0]},{obj_id},{target_id},{preds['inout'][i][j].item()}\n")
                         if vis:
-                            ax.plot(max_x, max_y, 'ro', markersize=10)  
-                            # Draw a line connecting the center of the rectangle to the max heatmap location
-                            ax.plot([center_x, max_x], [center_y, max_y], color='yellow', linewidth=2)
+                            if preds['inout'][i][j].item() > gaze_thresh:
+                                #ax.plot(max_x, max_y, 'ro', markersize=5, alpha = 0.6)  
+                                # Draw a line connecting the center of the rectangle to the max heatmap location
+                                #ax.plot([center_x, max_x], [center_y, max_y], color='yellow', linewidth=2, alpha = 0.5)
+                                #else:
+                                ax.plot(max_x, max_y, 'ro', markersize=5)
+                                # Draw a line connecting the center of the rectangle to the max heatmap location
+                                ax.plot([center_x, max_x], [center_y, max_y], color='yellow', linewidth=2)
+                            
 
                     #elif preds['inout'][i][j].item() > 0.2:
                     #    # Find the maximum of heatmap_norm and plot a yellow dot
@@ -224,14 +239,13 @@ def main(vis = False):
                 ax.axis('off')
                 plt.tight_layout()
                 plt.savefig(
-                    f"{args.output_path}/frame_{frame_number[0]}.png",
+                    f"{args.output_path}/frame_{frame_number[0]:06d}.png",
                     bbox_inches='tight',
                     pad_inches=0,
-                    dpi = 300
+                    dpi=300
                 )
                 plt.close()
-
                 
         
 if __name__ == "__main__":
-    main(vis = False)
+    main(vis = True, start_frame=7500, end_frame = 'last', by = 5, gaze_thresh = 0.9)

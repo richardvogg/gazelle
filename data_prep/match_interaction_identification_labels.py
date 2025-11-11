@@ -7,15 +7,18 @@ import pandas as pd
 
 video_path_root = "/usr/users/vogg/sfb1528s3/B06/2023april-july/NewBoxesClosed/Converted/"
 label_path = "data/raw_annotations/"
-output_path  = "data/lemurattentiontarget_new"
+output_path  = "data/lemurattentiontarget_joana1"
 os.makedirs(os.path.join(output_path, "images"), exist_ok=True)
 os.makedirs(os.path.join(output_path, "images_check"), exist_ok=True)
 
 #"A_e5_c7", "A_e7_c6", "A_e7_c7", "A_e8_c6", "A_e8_c7", "A_e9_c7"
-experiment_names = ["A_e10_c6", "A_e10_c7", "A_e11_c6", "A_e11_c7", "A_e12_c6", "A_e12_c7", "A_e13_c6", "A_e13_c7"]
+#["A_e10_c6", "A_e10_c7", "A_e11_c6", "A_e11_c7", "A_e12_c6", "A_e12_c7", "A_e13_c6", "A_e13_c7"]
+experiment_names = ["B_e2_c6", "B_e2_c7", "B_e3_c6", "B_e3_c7", "B_e4_c6", "B_e4_c7",
+                    "B_e6_c6", "B_e6_c7", "B_e7_c6", "B_e7_c7", "B_e8_c6", "B_e8_c7",
+                    "B_e9_c6", "B_e9_c7", "B_e11_c6", "B_e11_c7", "B_e12_c6", "B_e12_c7", "B_e14_c6"]
 
 for experiment_name in experiment_names:
-
+    os.makedirs(os.path.join(output_path, "images", experiment_name), exist_ok=True)
     if experiment_name.startswith("A"):
         group = "Alpha"
     elif experiment_name.startswith("B"):
@@ -70,7 +73,7 @@ for experiment_name in experiment_names:
                 cap.release()
                 continue
 
-            img_path = os.path.join(output_path, "images", f"{experiment_name}_frame{frame}.jpg")
+            img_path = os.path.join(output_path, "images", experiment_name, f"{experiment_name}_frame{frame}.jpg")
             cv2.imwrite(img_path, img)
 
             yellow = (0, 255, 255)
